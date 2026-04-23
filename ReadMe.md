@@ -1,83 +1,89 @@
-# Chapters - Portfolio Backend
+# Chapters Portfolio Backend
 
-This project is a FastAPI-based backend for an Chapters - AI Portal Portfolio backend. It provides APIs for managing
-administrators, users, projects, project feedback and etc.
+FastAPI backend for the Chapters AI Portal portfolio domain. It provides API endpoints for projects, feedback, user/profile views, admin and user dashboard checks, and a utility endpoint.
 
-## Features
+## What This Service Does
 
-- User authentication and authorization (JWT-based)
-- Role-based access control (Admin and User roles)
-- MongoDB integration using Beanie ODM
+- Serves portfolio project data from MongoDB through Beanie ODM.
+- Protects selected endpoints with Keycloak-backed JWT validation.
+- Exposes OpenAPI docs via FastAPI (`/docs`, `/redoc`).
+- Supports local development auth bypass via `DISABLE_AUTH` (never enable in production).
 
-## Technology Stack
+## Tech Stack
 
-- Python 3.7+
-- FastAPI
-- MongoDB
-- Beanie ODM
-- PyJWT
+- Python 3.10+ (recommended)
+- FastAPI + Uvicorn
+- MongoDB + Motor + Beanie
+- Keycloak integration for auth and user-directory lookups
+- Pydantic v2 + pydantic-settings
 
-## Project Structure
+## Repository Structure
 
-```
+```text
 .
-├── app.py
-├── main.py
-├── .env
+├── app.py                 # FastAPI app wiring, middleware, router mount, lifecycle hooks
+├── main.py                # Local dev runner (uvicorn, reload=True)
+├── core/
+│   ├── config.py          # Environment settings
+│   └── database.py        # Mongo client + Beanie init/close
 ├── auth/
-│   ├── jwt_bearer.py
-│   └── jwt_handler.py
-├── config/
-│   └── config.py
-├── database/
-│   └── ..
-├── models/
-│   ├── ..
-├── routes/
-│   ├── ..
-├── schemas/
-│   ├── ..
+│   ├── jwt_bearer.py      # Route guard dependency and role checks
+│   └── jwt_handler.py     # JWT decode + JWKS fetch/cache
+├── routes/                # API route modules
+├── database/              # Data-access helpers
+├── models/                # Beanie documents
+├── schemas/               # Request/response contracts
+├── services/              # External service integrations
+├── docs/                  # Extended technical docs
 └── requirements.txt
 ```
 
-## Setup and Installation
+## Quickstart
 
-1. Clone the repository:
+1. Create and activate a virtual environment:
+   ```bash
+   python -m venv .venv
+   source .venv/bin/activate
    ```
-   git clone Tharuka-Wijethunga/Chapters-Portfolio-Back-end
-   cd Chapters-Portfolio-Back-end
-   ```
-
-2. Create a virtual environment and activate it:
-   ```
-   python -m venv venv
-   source venv/bin/activate  # On Windows, use `venv\Scripts\activate`
-   ```
-
-3. Install the required packages:
-   ```
+2. Install dependencies:
+   ```bash
    pip install -r requirements.txt
    ```
-
-4. Create a `.env` file in the root directory and add your MongoDB URI:
+3. Create `.env` in the repository root:
+   ```env
+   MONGODB_URI=mongodb://localhost:27017
+   MONGODB_DB=chapters_portfolio
+   KEYCLOAK_URL=https://your-keycloak-host
+   REALM=your-realm
+   CLIENT_ID=your-client-id
+   CLIENT_SECRET=your-client-secret
+   DISABLE_AUTH=false
    ```
-   MONGODB_URI=your_mongodb_uri_here
-   MONGODB_DB=your_database_name
+4. Run locally:
+   ```bash
+   python main.py
    ```
 
-5. Initialize the admin users by running:
-   ```
-   python initialize_admin.py
-   ```
+Service URL: `http://localhost:8080`  
+OpenAPI docs: `http://localhost:8080/docs`  
+ReDoc: `http://localhost:8080/redoc`
 
-## Running the Application
+## Core Runtime Behavior
 
-To run the application, use the following command:
+- Startup initializes MongoDB/Beanie via `core.database.init_db`.
+- Shutdown closes the Motor client via `core.database.close_db_connection`.
+- Routers are mounted under:
+  - `/admin`
+  - `/user`
+  - `/projects`
+  - `/utils`
 
-```
-python main.py
-```
+## Important Configuration Notes
 
-The API will be available at `http://localhost:8080`.
+- `DISABLE_AUTH=true` returns a mock JWT payload from the auth dependency and bypasses token verification.
+- `BACKEND_CORS_ORIGINS` defaults to localhost values and should be restricted per environment.
+- `CLIENT_ID`, `REALM`, and `KEYCLOAK_URL` must match the token issuer/audience used by your Keycloak realm.
 
-API Documentation : `http://localhost:8080/docs`.
+## Documentation Map
+
+See [`docs/INDEX.md`](docs/INDEX.md) for complete architecture, API contract, data model, run/deploy, and issues/risk references.
