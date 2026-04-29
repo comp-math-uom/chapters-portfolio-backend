@@ -1,6 +1,6 @@
 from fastapi import Request, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from .jwt_handler import decode_jwt
+from .supabase_auth import decode_supabase_token
 from core.config import settings
 
 class JWTBearer(HTTPBearer):
@@ -20,7 +20,7 @@ class JWTBearer(HTTPBearer):
         if not credentials.scheme == "Bearer":
             raise HTTPException(status_code=403, detail="Invalid authentication scheme.")
         
-        payload = decode_jwt(credentials.credentials)
+        payload = decode_supabase_token(credentials.credentials)
         
         if not payload:
             raise HTTPException(status_code=403, detail="Invalid or expired token.")
@@ -30,8 +30,6 @@ class JWTBearer(HTTPBearer):
             if not any(role in user_roles for role in self.allowed_roles):
                 raise HTTPException(status_code=403, detail="You don't have permission to access this resource.")
         
-        # You can attach the payload to the request state if needed elsewhere
-        # request.state.user = payload
         return payload
 
     def _mock_payload(self) -> dict:
@@ -40,16 +38,21 @@ class JWTBearer(HTTPBearer):
         return {
             "sub": "test-user",
             "email": "test@example.com",
-            "name": "Test User",
-            "preferred_username": "test-user",
-            "resource_access": {settings.CLIENT_ID: {"roles": roles}},
+            "user_metadata": {
+                "username": "test-user",
+                "first_name": "Test",
+                "last_name": "User"
+            },
+            "app_metadata": {
+                "roles": roles
+            }
         }
 
     def get_user_roles(self, payload: dict) -> list:
         """
-        Extracts roles from the 'resource_access' claim for our specific client_id.
+        Extracts roles from the 'app_metadata' claim in Supabase.
         """
         try:
-            return payload.get("resource_access", {}).get(settings.CLIENT_ID, {}).get("roles", [])
+            return payload.get("app_metadata", {}).get("roles", [])
         except AttributeError:
             return []

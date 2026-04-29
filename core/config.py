@@ -7,11 +7,9 @@ class Settings(BaseSettings):
     MONGODB_URI: str
     MONGODB_DB: str
     
-    # Keycloak Settings
-    KEYCLOAK_URL: str
-    REALM: str
-    CLIENT_ID: str
-    CLIENT_SECRET: str
+    # Supabase settings
+    SUPABASE_URL: str
+    SUPABASE_JWT_AUDIENCE: str = "authenticated"
 
     # Auth toggles
     DISABLE_AUTH: bool = False
