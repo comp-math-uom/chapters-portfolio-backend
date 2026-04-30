@@ -50,9 +50,21 @@ class JWTBearer(HTTPBearer):
 
     def get_user_roles(self, payload: dict) -> list:
         """
-        Extracts roles from the 'app_metadata' claim in Supabase.
+        Extracts roles from Supabase JWT.
+        Includes both custom 'app_metadata.roles' and the standard 'role' claim.
         """
+        roles = []
         try:
-            return payload.get("app_metadata", {}).get("roles", [])
-        except AttributeError:
+            # Add custom roles from app_metadata
+            custom_roles = payload.get("app_metadata", {}).get("roles", [])
+            if isinstance(custom_roles, list):
+                roles.extend(custom_roles)
+            
+            # Add the standard Supabase role (usually 'authenticated')
+            sb_role = payload.get("role")
+            if sb_role:
+                roles.append(sb_role)
+                
+            return roles
+        except Exception:
             return []

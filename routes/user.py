@@ -9,7 +9,7 @@ router = APIRouter()
 @router.get(
     "/users",
     response_model=List[UserProfile],
-    dependencies=[Depends(JWTBearer(allowed_roles=["admin"]))],
+    dependencies=[Depends(JWTBearer(allowed_roles=["admin", "authenticated"]))],
 )
 async def list_users():
     """List all users who have recently authenticated (cached)."""
@@ -18,7 +18,7 @@ async def list_users():
 @router.get(
     "/user/{user_id}",
     response_model=UserProfile,
-    dependencies=[Depends(JWTBearer(allowed_roles=["admin"]))],
+    dependencies=[Depends(JWTBearer(allowed_roles=["admin", "authenticated"]))],
 )
 async def get_user(user_id: str):
     user = get_user_by_id(user_id)
@@ -28,7 +28,7 @@ async def get_user(user_id: str):
     return user
 
 @router.get("/me", response_model=dict)
-async def get_current_user_info(payload: dict = Depends(JWTBearer(allowed_roles=["view-profile", "manage-account"]))):
+async def get_current_user_info(payload: dict = Depends(JWTBearer(allowed_roles=["view-profile", "manage-account", "authenticated"]))):
     """
     Get current authenticated user's information directly from the Supabase JWT payload.
     """
@@ -46,7 +46,7 @@ async def get_current_user_info(payload: dict = Depends(JWTBearer(allowed_roles=
         "roles": payload.get("app_metadata", {}).get("roles", [])
     }
 
-@router.get("/dashboard", dependencies=[Depends(JWTBearer(allowed_roles=["view-profile", "manage-account"]))])
+@router.get("/dashboard", dependencies=[Depends(JWTBearer(allowed_roles=["view-profile", "manage-account", "authenticated"]))])
 async def user_dashboard():
     """
     User dashboard endpoint, accessible to users with required roles.

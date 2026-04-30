@@ -40,12 +40,12 @@ async def get_project_by_id(projectId: str):
 
 # --- Protected Routes ---
 
-@router.post("/create", response_model=ProjectSchema, status_code=201, dependencies=[Depends(JWTBearer(allowed_roles=["view-profile", "manage-account"]))])
+@router.post("/create", response_model=ProjectSchema, status_code=201, dependencies=[Depends(JWTBearer(allowed_roles=["view-profile", "manage-account", "authenticated"]))])
 async def create_new_project(project: ProjectCreateSchema):
     new_project = Project(**project.dict())
     return await project_db.create_project(new_project)
 
-@router.put("/{projectId}", response_model=ProjectSchema, dependencies=[Depends(JWTBearer(allowed_roles=["view-profile", "manage-account"]))])
+@router.put("/{projectId}", response_model=ProjectSchema, dependencies=[Depends(JWTBearer(allowed_roles=["view-profile", "manage-account", "authenticated"]))])
 async def update_existing_project(projectId: str, project_update: ProjectUpdateSchema):
     if not ObjectId.is_valid(projectId):
         raise HTTPException(status_code=400, detail="Invalid project ID")
@@ -58,7 +58,7 @@ async def update_existing_project(projectId: str, project_update: ProjectUpdateS
         raise HTTPException(status_code=404, detail="Project not found")
     return updated_project
 
-@router.delete("/{projectId}", status_code=204, dependencies=[Depends(JWTBearer(allowed_roles=["view-profile", "manage-account"]))])
+@router.delete("/{projectId}", status_code=204, dependencies=[Depends(JWTBearer(allowed_roles=["view-profile", "manage-account", "authenticated"]))])
 async def delete_existing_project(projectId: str):
     if not ObjectId.is_valid(projectId):
         raise HTTPException(status_code=400, detail="Invalid project ID")
@@ -67,7 +67,7 @@ async def delete_existing_project(projectId: str):
         raise HTTPException(status_code=404, detail="Project not found")
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
-@router.put("/{projectId}/featured", response_model=ProjectSchema, dependencies=[Depends(JWTBearer(allowed_roles=["view-profile", "manage-account"]))])
+@router.put("/{projectId}/featured", response_model=ProjectSchema, dependencies=[Depends(JWTBearer(allowed_roles=["view-profile", "manage-account", "authenticated"]))])
 async def set_project_featured_status(projectId: str, featured: bool = Body(..., embed=True)):
     updated_project = await project_db.set_featured_status(projectId, featured)
     if not updated_project:
@@ -76,7 +76,7 @@ async def set_project_featured_status(projectId: str, featured: bool = Body(...,
 
 # --- Feedback Routes (Protected) ---
 
-@router.post("/{projectId}/feedback", response_model=FeedbackResponse, status_code=201, dependencies=[Depends(JWTBearer(allowed_roles=["view-profile", "manage-account"]))])
+@router.post("/{projectId}/feedback", response_model=FeedbackResponse, status_code=201, dependencies=[Depends(JWTBearer(allowed_roles=["view-profile", "manage-account", "authenticated"]))])
 async def add_feedback(projectId: str, feedback: FeedbackCreate):
     if not ObjectId.is_valid(projectId):
         raise HTTPException(status_code=400, detail="Invalid project ID")
@@ -93,7 +93,7 @@ async def add_feedback(projectId: str, feedback: FeedbackCreate):
     return new_feedback
 
 
-@router.get("/{projectId}/feedback", response_model=List[FeedbackResponse], dependencies=[Depends(JWTBearer(allowed_roles=["view-profile", "manage-account"]))])
+@router.get("/{projectId}/feedback", response_model=List[FeedbackResponse], dependencies=[Depends(JWTBearer(allowed_roles=["view-profile", "manage-account", "authenticated"]))])
 async def get_feedback_for_project(projectId: str):
     if not ObjectId.is_valid(projectId):
         raise HTTPException(status_code=400, detail="Invalid project ID")
@@ -102,7 +102,7 @@ async def get_feedback_for_project(projectId: str):
         raise HTTPException(status_code=404, detail="Project not found or not visible")
     return await Feedback.find({"project_id": projectId}).sort("-created_at").to_list()
 
-@router.delete("/feedback/{feedbackId}", status_code=204, dependencies=[Depends(JWTBearer(allowed_roles=["view-profile", "manage-account"]))])
+@router.delete("/feedback/{feedbackId}", status_code=204, dependencies=[Depends(JWTBearer(allowed_roles=["view-profile", "manage-account", "authenticated"]))])
 async def delete_feedback_by_id(feedbackId: str):
     if not ObjectId.is_valid(feedbackId):
         raise HTTPException(status_code=400, detail="Invalid feedback ID")
@@ -112,7 +112,7 @@ async def delete_feedback_by_id(feedbackId: str):
     await feedback.delete()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
-@router.put("/feedback/{feedbackId}/rank", response_model=FeedbackResponse, dependencies=[Depends(JWTBearer(allowed_roles=["view-profile", "manage-account"]))])
+@router.put("/feedback/{feedbackId}/rank", response_model=FeedbackResponse, dependencies=[Depends(JWTBearer(allowed_roles=["view-profile", "manage-account", "authenticated"]))])
 async def rank_feedback(feedbackId: str, rank_update: FeedbackUpdate):
     if not ObjectId.is_valid(feedbackId):
         raise HTTPException(status_code=400, detail="Invalid feedback ID")
