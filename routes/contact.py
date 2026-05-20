@@ -26,7 +26,7 @@ import logging
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
-import requests
+import httpx
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, EmailStr, Field
 
@@ -57,7 +57,7 @@ def _send_via_resend(payload: ContactMessage, to_email: str, from_email: str) ->
     if not settings.RESEND_API_KEY:
         return False
     try:
-        resp = requests.post(
+        resp = httpx.post(
             "https://api.resend.com/emails",
             headers={
                 "Authorization": f"Bearer {settings.RESEND_API_KEY}",
@@ -70,13 +70,13 @@ def _send_via_resend(payload: ContactMessage, to_email: str, from_email: str) ->
                 "subject": f"[Chapters Contact] {payload.subject}",
                 "text": _build_email_body(payload),
             },
-            timeout=10,
+            timeout=10.0,
         )
         if resp.status_code >= 400:
             logger.warning("Resend rejected message: %s %s", resp.status_code, resp.text)
             return False
         return True
-    except requests.RequestException as exc:
+    except httpx.HTTPError as exc:
         logger.warning("Resend request failed: %s", exc)
         return False
 
