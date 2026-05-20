@@ -1,8 +1,9 @@
 from motor.motor_asyncio import AsyncIOMotorClient
 from beanie import init_beanie
 
-from models.feedback import Feedback
 from models.project import Project
+from models.achievement import Achievement
+from models.about_us import AboutUs
 from core.config import settings
 
 # Global database client
@@ -13,7 +14,7 @@ async def init_db():
     try:
         await init_beanie(
             database=client[settings.MONGODB_DB],
-            document_models=[Feedback, Project]
+            document_models=[Project, Achievement, AboutUs]
         )
         print("Database initialized successfully")
     except Exception as e:

@@ -20,7 +20,6 @@ class ProjectSchema(BaseModel):
     featured: bool
     created_at: datetime
 
-
     class Config:
         from_attributes = True
 
@@ -60,6 +59,12 @@ class ProjectUpdateSchema(BaseModel):
     topic: Optional[str] = None
     description: Optional[str] = None
     image: Optional[str] = None
+    batch: Optional[str] = None
+    contributors: Optional[List[str]] = None
+    search_tags: Optional[List[str]] = None
+    date: Optional[datetime] = None
+    width: Optional[int] = None
+    height: Optional[int] = None
     visibility: Optional[bool] = None
     featured: Optional[bool] = None
 
@@ -68,6 +73,8 @@ class ProjectUpdateSchema(BaseModel):
             "example": {
                 "topic": "My Updated Topic",
                 "description": "Updated description",
+                "contributors": ["Alice", "Bob", "Carol"],
+                "search_tags": ["ai", "ml"],
                 "visibility": True,
                 "featured": False,
             }
@@ -75,4 +82,8 @@ class ProjectUpdateSchema(BaseModel):
 
 
 class ProjectListSchema(BaseModel):
+    """Paginated list response."""
     projects: List[ProjectSchema]
+    total: int = 0
+    page: int = 1
+    limit: int = 12

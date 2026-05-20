@@ -5,6 +5,9 @@ from core.config import settings
 from routes.admin import router as AdminRouter
 from routes.user import router as UserRouter
 from routes.project import router as ProjectRouter
+from routes.achievement import router as AchievementRouter
+from routes.about_us import router as AboutUsRouter
+from routes.contact import router as ContactRouter
 from routes.utils import router as UtilsRouter
 
 app = FastAPI(
@@ -29,6 +32,20 @@ if settings.BACKEND_CORS_ORIGINS:
 @app.on_event("startup")
 async def startup_db_client():
     await init_db()
+    # Make it obvious in the logs whether the contact form will work.
+    # If you change CONTACT_TO_EMAIL in .env, the running process won't pick
+    # the new value up until you restart uvicorn -- this log confirms what
+    # got loaded.
+    if settings.CONTACT_TO_EMAIL:
+        provider = "resend" if settings.RESEND_API_KEY else (
+            "smtp" if settings.CONTACT_SMTP_HOST else "none"
+        )
+        print(
+            f"[contact] delivery configured via '{provider}' "
+            f"-> to={settings.CONTACT_TO_EMAIL} from={settings.CONTACT_FROM_EMAIL}"
+        )
+    else:
+        print("[contact] WARNING: CONTACT_TO_EMAIL is empty -- form will return 503")
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
@@ -38,6 +55,9 @@ async def shutdown_db_client():
 app.include_router(AdminRouter, prefix="/admin", tags=["Admin"])
 app.include_router(UserRouter, prefix="/user", tags=["User"])
 app.include_router(ProjectRouter, prefix="/projects", tags=["Projects"])
+app.include_router(AchievementRouter, prefix="/achievements", tags=["Achievements"])
+app.include_router(AboutUsRouter, prefix="/about-us", tags=["AboutUs"])
+app.include_router(ContactRouter, prefix="/contact", tags=["Contact"])
 app.include_router(UtilsRouter, prefix="/utils", tags=["Utils"])
 
 @app.get("/")

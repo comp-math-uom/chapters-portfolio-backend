@@ -43,6 +43,12 @@ class ProjectUpdate(BaseModel):
     topic: Optional[str] = None
     description: Optional[str] = None
     image: Optional[str] = None
+    batch: Optional[str] = None
+    contributors: Optional[List[str]] = None
+    search_tags: Optional[List[str]] = None
+    date: Optional[datetime] = None
+    width: Optional[int] = None
+    height: Optional[int] = None
     visibility: Optional[bool] = None
     featured: Optional[bool] = None
 

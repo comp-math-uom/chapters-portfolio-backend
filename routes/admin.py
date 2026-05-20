@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Depends
-from auth.jwt_bearer import JWTBearer
+
+from auth.jwt_bearer import require_admin
 
 router = APIRouter()
 
-@router.get("/dashboard", dependencies=[Depends(JWTBearer(allowed_roles=["view-profile", "manage-account", "authenticated"]))])
+
+@router.get("/dashboard", dependencies=[Depends(require_admin)])
 async def admin_dashboard():
-    """
-    Admin dashboard endpoint, accessible only to users with the required roles in Supabase.
-    """
+    """Admin dashboard ping. Useful for verifying an admin JWT in dev."""
     return {"message": "Welcome to the admin dashboard!"}
